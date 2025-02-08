@@ -1,0 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Quicksand:wght@300..700&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
+@import "tailwindcss";
+
+@theme {
+
+    --color-black: rgb(19, 41, 61);
+    --color-white: rgb(251, 255, 254);
+    --color-light-blue: rgb(232, 241, 242);
+    --color-blue: rgb(27, 152, 224);
+    --color-xanthous: rgb(230, 175, 46);
+
+    --font-title: 'Quicksand', sans-serif;
+    --font-username: 'Railway', sans-serif;
+    --font-message: 'Inter', sans-serif;
+}

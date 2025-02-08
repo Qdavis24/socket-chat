@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../static/css/src/output.css"/>
+    <title>Home</title>
+</head>
+<body>
+<div class="container flex flex-row min-w-screen h-screen">
+    <div class="nav w-1/5 h-full flex flex-col space-y-5 bg-black pt-10">
+        {% for i in range(10) %}
+        <button onclick="changeRoom('{{loop.index}}')"
+                class="font-title text-slate-200 flex justify-center items-center underline cursor-pointer p-5">
+            Room number {{ loop.index }}
+        </button>
+        {% endfor %}
+    </div>
+    <div class="chat-container w-full h-full flex flex-col">
+        <div class="w-full h-1/6 flex items-center justify-center p-10 border-b-2 bg-light-blue border-white">
+            <h1 class="text-5xl font-title" id="room-num">Room 1</h1>
+        </div>
+        <div class="w-full h-3/6 bg-white overflow-scroll" id="messagebox">
+
+        </div>
+        <div class="flex flex-row items-center w-full grow bg-slate-50 p-10">
+            <textarea class="border-2 rounded-lg bg-white w-3/4 h-2/4" type="text" name="chat" id="chatbox"
+                      placeholder="Type in message.."></textarea>
+            <button onclick="serverMessage()"
+                    class="w-[10vw] h-[5vh] rounded-lg bg-xanthous ml-10 hover:bg-yellow-500 duration-500 cursor-pointer">
+                Submit
+            </button>
+        </div>
+    </div>
+
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
+        integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
+        crossorigin="anonymous"></script>
+<script type="text/javascript" charset="utf-8">
+    const comments = document.getElementById("messagebox");
+    const chatbox = document.getElementById("chatbox");
+    const roomNum = document.getElementById("room-num");
+    const socket = io();
+    let currRoom;
+
+    function wipeChat() {
+        while (comments.firstChild) {
+            comments.removeChild(comments.lastChild);
+        }
+    }
+
+    function createMessage(type, username, message) {
+        console.log(type)
+        if (type === false) {
+            const div = document.createElement("div");
+            div.classList.add("flex", "flex-col", "m-5", "space-y-3");
+            const uname = document.createElement("h2");
+            uname.classList.add("font-message", "text-base");
+            uname.innerHTML = username;
+            const msg = document.createElement("p");
+            msg.classList.add("bg-blue", "rounded-xl", "p-2", "ml-7", "font-message", "text-gray-100", "w-fit", "max-w-1/2");
+            msg.innerHTML = message;
+
+
+            div.appendChild(uname);
+            div.appendChild(msg);
+
+            return div;
+        } else {
+
+            const p = document.createElement("p");
+            p.classList.add("m-5", "text-sm", "opacity-20");
+            p.innerHTML = username + " " + message;
+            return p;
+
+        }
+
+
+    }
+
+    function serverMessage() {
+        const message = chatbox.value;
+        socket.emit("server-message", {"system-message": false, "message": message, "room": currRoom});
+    }
+
+    function changeRoom(newRoom) {
+        if (currRoom != newRoom) {
+
+            const serverMessageData = {"system-message": true, "room": currRoom, "message": "has left the room"}
+            const changeRoomData = {"old-room": currRoom, "new-room": newRoom};
+
+            roomNum.innerHTML = "Room " + newRoom;
+            socket.emit("server-message", serverMessageData);
+            socket.emit("change-room", changeRoomData);
+        }
+    }
+
+    socket.on("join-room", function (room) {
+        wipeChat()
+        currRoom = room;
+    })
+    socket.on("load-messages", function (prevMessages) {
+        if (prevMessages) {
+            prevMessages.forEach(msg => {
+                comments.appendChild(createMessage(msg["system-message"], msg["username"], msg["message"]));
+            })
+        }
+    })
+    socket.on("client-message", function (packagedMsg) {
+        console.log(packagedMsg["system-message"])
+        comments.appendChild(createMessage(packagedMsg["system-message"], packagedMsg["username"], packagedMsg["message"]));
+    })
+
+
+</script>
+</body>
+</html>
