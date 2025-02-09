@@ -3,4 +3,5 @@ package.json
 package-lock.json
 tailwind.config.js
 .venv
-
+.idea
+*.pyc
